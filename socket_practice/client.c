@@ -1,0 +1,41 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <arpa/inet.h>
+#include<unistd.h>
+#include <string.h>
+int main(){
+    int cfd= socket(AF_INET, SOCK_STREAM, 0);
+    if(cfd==-1){
+        perror("socket: ");
+        exit(0);
+    }
+    struct sockaddr_in sock;
+    const char * ip="192.168.3.106";
+    inet_pton(AF_INET,ip, &sock.sin_addr.s_addr);
+    sock.sin_port=htons(1234);
+    sock.sin_family=AF_INET;
+    if(connect(cfd,(struct sockaddr*) &sock,sizeof(sock))==-1){
+        perror("connect");
+        exit(0);
+    }
+
+    
+    char wbuf[128]="hellor from client\n";
+    if(write(cfd, wbuf, strlen(wbuf))==-1){
+        perror("write: ");
+        exit(0);
+    }
+
+    printf("send to server:   %s",wbuf);
+   
+
+    char buf[128]="";
+    if(read(cfd,buf,128)==0){
+        printf("server closed\n");
+        exit(0);
+    }
+    
+    printf("received from server:  %s",buf);
+    close(cfd);
+    return 0;
+}
