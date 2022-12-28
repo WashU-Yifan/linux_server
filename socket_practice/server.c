@@ -31,7 +31,7 @@ int main(){
     }
     char addr[16]=""; 
     printf("client IP: %s \nclient port: %d\n",inet_ntoa(c_sock.sin_addr),c_sock.sin_port);
-
+  
 
 
     char buf[128]="";
