@@ -25,29 +25,40 @@ int main(){
     }
     struct sockaddr_in c_sock;
     unsigned int size=sizeof(c_sock);
+
+
     if((cfd=accept(sfd,(struct sockaddr*) &c_sock,&size))==-1){
-        perror("accept: ");
-        exit(0);
-    }
-    char addr[16]=""; 
-    printf("client IP: %s \nclient port: %d\n",inet_ntoa(c_sock.sin_addr),c_sock.sin_port);
-  
+            perror("accept: ");
+            exit(0);
+        }
+        char addr[16]=""; 
+        printf("client IP: %s \nclient port: %d\n",inet_ntoa(c_sock.sin_addr),c_sock.sin_port);
+    
 
+    while(1){
+        
 
-    char buf[128]="";
-    if(read(cfd,buf,128)==0){
-        printf("client closed\n");
-        exit(0);
-    }
-    printf("received from client:  %s",buf);
+        char buf[128]="";
+        int size=read(cfd,buf,128);
+        if(size==0){
+            printf("client closed\n");
+            break;
+        }
+        else if(size==-1){
+            perror("read");
+            break;
+        }
+        printf("received from client:  %s",buf);
 
-    char wbuf[128]="hellor from server\n";
-    printf("send to client:   %s",wbuf);
-    if(write(cfd, wbuf, strlen(wbuf))==-1){
-        perror("write: ");
-        exit(0);
+        char wbuf[128]="hellor from server\n";
+        printf("send to client:   %s",wbuf);
+        if(write(cfd, wbuf, strlen(wbuf))==-1){
+            perror("write: ");
+            exit(0);
+        }
+       
     }
-    close(cfd);
+     close(cfd);
     close(sfd);
     return 0;
 }
