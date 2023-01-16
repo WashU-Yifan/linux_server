@@ -14,7 +14,7 @@ int main(){
         pthread_exit(0);
     }
     struct sockaddr_in sock;
-    const char * ip="192.168.3.106";
+    const char * ip="128.252.167.161";
     inet_pton(AF_INET,ip, &sock.sin_addr.s_addr);
     sock.sin_port=htons(1234);
     sock.sin_family=AF_INET;
