@@ -1,20 +1,17 @@
 #pragma once
 #include <sys/epoll.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <unistd.h>
-#include <iostream>
-class EPOLL{
+#include <vector>
+class Epoll{// Encapsulate the complicate epoll interface.
     public:
-        epoll(int size,int sfd): SIZE(size),epfd(epoll_create(SIZE)),listenfd(sfd){
-            if (epfd) cout<<"epoll create failed"<<endl;
-            assert(epfd!=-1);
-        };
-        void add_fd(int fd, struct epoll_event &event);
-        void mod_fd(int fd, struct epoll_event &event);
+        Epoll(int size);
+        void add_fd(int fd, unsigned int op=EPOLLIN|EPOLLET);//bydefault fd are set to non-blocking
+        void mod_fd(int fd, unsigned int op);
         void del_fd(int fd);
+        std::vector<epoll_event> Epoll_wait(int timeout);
     private:
-        const int SIZE, listenfd,epfd;
+        const int SIZE, epfd;
+        std::vector<epoll_event> events;
 
         
 };
