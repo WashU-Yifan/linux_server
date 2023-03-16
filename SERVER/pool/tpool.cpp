@@ -3,28 +3,38 @@
 
 
 template <typename T>
-Tpool<T>:: Tpool(unsigned short size): Tnumber(size), sem(size),threads(size){
+Tpool<T>:: Tpool(unsigned short size,int max_request):
+ Tnumber(size), sem(size),threads(size),max_request(max_request){
     //initialize the thread vector
     for(i=0;i<size;++i){
-        threads[i]=std::thread(worker);
+        threads[i]=std::thread(runHead);
         threads[i].detach();
     }
 }
 
 template <typename T>
-void Tpool<T>::addTask(Task<T>&& task){
+bool Tpool<T>::addTask(const T& task){
     que_mut.lock();
-    Tque.push(std::forward(task));
+    if(Tque.size()>max_request){
+        que_mut.unlock();
+        return false;
+    }
+    Tque.push(std::move(task));
     que_mut.unlock();
+    sem.post();
+    return true;
 }
 
 template <typename T>
 void Tpool<T>:: runHead(){
-    sem.wait();
-    que_mut.lock();
+    while(1){
+        sem.wait();
+        que_mut.lock();
     
-    Tque.pop().execute();
-    que_mut.unlock();
+        auto task=Tque.pop();
+        task();
+        que_mut.unlock(); 
+    }
 }
 
 
