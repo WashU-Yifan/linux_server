@@ -1,5 +1,7 @@
+#include <string>
 class Http{
-    string data;
-    
+    std::string data;
+    public:
+        Http(std::string &&);
 
 };

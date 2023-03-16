@@ -1,0 +1,119 @@
+1 Yifan Wang  Zihan(Tomson) Li
+
+2.
+
+tmpfs              3.9G     0  3.9G   0% /sys/fs/cgroup
+
+compute-scratch02.engr.wustl.edu:/export/scratch01  1.0T  666G  359G  65% /project/scratch01
+
+
+The mounted on value tells where the file system reside.
+
+For most file system with huge chunk of storage, the usage are usually above 50%, which means 
+
+3.
+sub1:
+268822 file0
+
+sub2:
+268822 file0
+
+sub3:
+268822 file0
+
+Hard links make each link point to the same orginial file in the filesystem, since 
+they have the same inode number 
+
+4.
+
+sub1:
+268822 file0
+
+sub2:
+268822 file0
+
+sub3:
+268822 file0
+
+sub4:
+268822 file0
+
+sub5:
+268822 file0
+
+mounting file and directory will keep the original files and directory's inode.
+
+5.
+initiation:
+	inotify successfully initiate, fd:3 
+	inotify event added on fd 3, and path step3/sub6/
+
+ls command: 
+	wd 1, mask 1073741856, cookie 0, len 0, masks:
+	IN_OPEN
+	IN_ALL_EVENTS
+	wd 1, mask 1073741825, cookie 0, len 0, masks:
+	IN_ACCESS
+	IN_ALL_EVENTS
+	wd 1, mask 1073741840, cookie 0, len 0, masks:
+	IN_CLOSE_NOWRITE
+	IN_ALL_EVENTS
+	IN_CLOSE
+
+touch file.txt:
+
+	wd 1, mask 256, cookie 0, len 16, masks:
+	name file.txt
+	IN_CREATE
+	IN_ALL_EVENTS
+	wd 1, mask 32, cookie 0, len 16, masks:
+	name file.txt
+	IN_OPEN
+	IN_ALL_EVENTS
+	wd 1, mask 4, cookie 0, len 16, masks:
+	name file.txt
+	IN_ATTRIB
+	IN_ALL_EVENTS
+	wd 1, mask 8, cookie 0, len 16, masks:
+	name file.txt
+	IN_CLOSE_WRITE
+	IN_ALL_EVENTS
+	IN_CLOSE
+
+mv file.txt ..
+
+	wd 1, mask 64, cookie 758, len 16, masks:
+	name file.txt
+	IN_MOVED_FROM
+	IN_ALL_EVENTS
+	IN_MOVE
+
+mv ../file.txt file.txt
+
+	wd 1, mask 128, cookie 759, len 16, masks:
+	name file.txt
+	IN_MOVED_TO
+	IN_ALL_EVENTS
+	IN_MOVE
+
+touch file.txt
+
+	wd 1, mask 32, cookie 0, len 16, masks:
+	name file.txt
+	IN_OPEN
+	IN_ALL_EVENTS
+	wd 1, mask 4, cookie 0, len 16, masks:
+	name file.txt
+	IN_ATTRIB
+	IN_ALL_EVENTS
+	wd 1, mask 8, cookie 0, len 16, masks:
+	name file.txt
+	IN_CLOSE_WRITE
+	IN_ALL_EVENTS
+	IN_CLOSE
+
+
+
+
+
+

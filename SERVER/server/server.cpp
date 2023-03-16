@@ -4,7 +4,7 @@
 using std::vector;
 using std::cout;using std::endl;
 using  std::unordered_map;
-
+using std::string;
 Server::Server( int epollsize, const char * inet,int portnum,int time):
 epoll(epollsize),
 listenSocket(Socket()),
@@ -39,15 +39,15 @@ void Server::Run(){
             add_client();
         }
         else if(event.events&EPOLLIN){//Read available from client
-            read_client(event.fd);
+            read_client(event.data.fd);
             //pool.add_task(event_map[fd]);
         }
         else if(event.events&EPOLLOUT){
-            write_client(event.fd);
+            write_client(event.data.fd);
         }
 
-        }
     }
+    
 }
 
 void Server::add_client(){
@@ -63,19 +63,21 @@ void Server::add_client(){
 
 
 void Server::read_client(int fd){// read data from client store the http connection.
-    Http conn;
+    
     char buf[1024]={0};
     int len=0,read_bytes=0;
     string data;
-    while(read_bytes=read(fd, buf, strlen(buf))>=0){
+    //continuous read from the non-blocking fd
+    while(read_bytes=read(fd, buf, sizeof(buf))>=0){
         len+=read_bytes;
         data.append(data,read_bytes);
     }
     if(len){
-        conn(std::move(data));
+        //conn=std::move(data);
+        event_map[fd]=std::move(data);
     }
-    event_map[fd]=conn;
+    
 }
-void Server::write_client(){
+void Server::write_client(int fd){
 
 }

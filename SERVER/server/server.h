@@ -3,6 +3,8 @@
 #include "socket.h"
 #include "http.h"
 #include <unordered_map>
+
+
 class Server{
    
     public:
@@ -13,8 +15,8 @@ class Server{
 
     private:
         void add_client();
-        void read_client();
-        void write_client();
+        void read_client(int);
+        void write_client(int);
         
         Epoll epoll;
         Socket listenSocket;
