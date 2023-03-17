@@ -1,4 +1,4 @@
-
+#pragma once
 #include <functional>
 
 template <typename T, typename... Args>
@@ -13,3 +13,4 @@ public:
         return stored_task();
     }
 };
+template class Task<void(int, int), int, int>;
