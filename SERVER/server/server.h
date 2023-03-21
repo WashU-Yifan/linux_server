@@ -1,27 +1,33 @@
 #pragma once
 #include "epoll.h"
 #include "socket.h"
-#include "http.h"
+#include "../pool/tpool.h"
+#include "../Http/Http.h"
 #include <unordered_map>
+#include <memory>
+#include <functional>
+
 
 
 class Server{
-   
+
     public:
-        Server( int epollsize, const char * inet,int portnum,int time);
-        Server( int epollsize,int portnum,int time);
+        Server( int portnum,int time,const char * inet="0.0.0.0",
+          int max_request_size=1024,int thread_num=4);
         void Run();
 
 
     private:
         void add_client();
         void read_client(int);
-        void write_client(int);
+        //void write_client(int);
         
-        Epoll epoll;
+        std::shared_ptr<Epoll> epoll;
         Socket listenSocket;
         int listenfd,epollWaiTime;
         std::unordered_map<int, Http> event_map;
+        Tpool<std::function<Http &()>> thread_pool;
+
+
 };
 
-int socket_init(const char * inet, int portnum);

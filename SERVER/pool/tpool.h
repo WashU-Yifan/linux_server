@@ -1,25 +1,18 @@
 #pragma once
+
 #include <thread>
 #include <queue>
 #include <mutex>
-#include <semaphore.h>
-#include "task.h"
+
+#include "sem.h"
+#include "../Http/Http.h"
+
+template <typename F> auto compose (F f,Http& a) {
+  return [f,&a]()-> Http & { return f(a); };
+}
 
 
 
-//Encapsulate the POSIX semaphore
-class Semaphore{
-    sem_t semaphore;
-public:
-    Semaphore(int val);
-    void wait();
-    void post();
-    ~Semaphore();
-
-};
-
-
-//#include <semaphore>
 /*这是一个简单的线程池（Tpool）实现，用于处理任务队列。
 线程池的作用是管理一组线程，这些线程可以并发地执行任务。
 线程池使用一个任务队列（Tque）来存储待执行的任务，以及
@@ -33,14 +26,18 @@ class Tpool{
         //Worker function of the thread, continuously pop the task que and run the task.
         void runHead();
     private:
+        const unsigned short Tnumber;
         int max_request;
-        std::mutex que_mut;
         Semaphore sem;
+        std::mutex que_mut;
         std::queue<T> Tque;
         std::vector<std::thread> threads;
-        const unsigned short Tnumber;
+        
         
 };
 
 
 
+#ifdef TEMPLATE_HEADERS_INCLUDE_SOURCE
+    #include "tpool.cpp"
+  #endif

@@ -1,10 +1,12 @@
  
 #include "tpool.h"
+#include <iostream>
+//template class Tpool<Task<void(int, int), int, int>>;
 
-template class Tpool<Task<void(int, int), int, int>>;
+
 template <typename T>
 Tpool<T>:: Tpool(unsigned short size,int max_request):
- Tnumber(size), sem(0),max_request(max_request)
+ Tnumber(size), max_request(max_request),sem(0)
  {
     //initialize the thread vector
     for(int i=0;i<size;++i){
@@ -16,7 +18,7 @@ Tpool<T>:: Tpool(unsigned short size,int max_request):
 template <typename T>
 bool Tpool<T>::addTask(const T& task){
     que_mut.lock();
-    if(Tque.size()>max_request){
+    if(Tque.size()>(size_t)max_request){
         que_mut.unlock();
         return false;
     }
@@ -34,8 +36,27 @@ void Tpool<T>:: runHead(){
 
         T task = Tque.front(); // Get the task from the front of the queue
         Tque.pop();
-        task();
         que_mut.unlock(); 
+
+
+        Http& http=task();
+        if(http.del()){
+            //If wirte back is not perfromed and is not due to no-nonblocking issues
+            close(http.getfd());
+            auto epoll_shared_ptr = http.epoll.lock();
+            if (epoll_shared_ptr) {
+                epoll_shared_ptr->del_fd(http.getfd());
+            } else {
+                std::cout<<"epoll pointer not valid"<<std::endl;
+                throw new std::exception();
+            }
+            
+
+        }
+        else{
+            if(http.again())
+                addTask(compose(Http::handleHttp,http));
+        }
     }
 }
 
@@ -43,28 +64,3 @@ void Tpool<T>:: runHead(){
 
 
 
-
-Semaphore::Semaphore(int val){
-    if(sem_init(&semaphore, 0, val)){
-        perror("sem_init");
-        exit(EXIT_FAILURE);
-    }
-}
-void Semaphore::wait(){
-    if(sem_wait(&semaphore)){
-        perror("sem_wait");
-        exit(EXIT_FAILURE);
-    }
-
-}
-void Semaphore::post(){
-    if(sem_post(&semaphore)){
-        perror("sem_post");
-        exit(EXIT_FAILURE);
-    }
-}
-
-
-Semaphore::~Semaphore(){
-    sem_destroy(&semaphore);
-}
