@@ -26,7 +26,7 @@ class Server{
         Socket listenSocket;
         int listenfd,epollWaiTime;
         std::unordered_map<int, Http> event_map;
-        Tpool<std::function<Http &()>> thread_pool;
+        Tpool<std::function<Http ()>> thread_pool;
 
 
 };

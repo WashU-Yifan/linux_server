@@ -7,8 +7,8 @@
 #include "sem.h"
 #include "../Http/Http.h"
 
-template <typename F> auto compose (F f,Http& a) {
-  return [f,&a]()-> Http & { return f(a); };
+template <typename F> auto compose (F f,const Http& a) {
+  return [f,a]()-> Http  { return f(a); };
 }
 
 

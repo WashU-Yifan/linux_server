@@ -67,7 +67,7 @@ int Socket::accept_client(){
     socklen_t len=sizeof(*client_add);
     std::memset(client_add.get(), 0, len);
     int cfd=0;
-    if((cfd=accept(sfd,(sockaddr *)client_add.get(), &len))==-1){
+    if((cfd=accept(sfd,(sockaddr *)client_add.get(), &len))==-1&&errno!=EAGAIN){
         perror("accept");
         return -1;
     }

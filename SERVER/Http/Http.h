@@ -8,14 +8,17 @@ class Http{
     public:
     
         Http()=default;
-        Http(std::string &&, int,std::shared_ptr<Epoll> );
-        Http(const Http&  );
+        Http(std::string , int,const std::shared_ptr<Epoll>& );
+        Http(const Http&);
+      //  Http(const Http&  );
         int write_back();
-        static Http& handleHttp(Http&);
+        static Http handleHttp(const Http&);
 
         inline int getfd(){return fd;}
         inline bool again(){return _again;}
         inline bool del(){return _del;}
+        
+        //std::shared_ptr<Epoll> epoll;
         std::weak_ptr<Epoll> epoll;
     private:
         std::string data;

@@ -24,20 +24,18 @@ thread_pool(thread_num,epollsize)
 
 void Server::Run(){
    
-    
-    vector<epoll_event> &&ready_fd=epoll->Epoll_wait(epollWaiTime);
-    for(auto& event:ready_fd){
-        if(event.data.fd==listenfd){
-            add_client();
-        }  
-        else if(event.events&EPOLLIN){//Read available from client
-            read_client(event.data.fd);
-            //pool.add_task(event_map[fd]);
-        }
-        //else if(event.events&EPOLLOUT){
-          //  write_client(event.data.fd);
-        //}
+    while(1){
+        vector<epoll_event> ready_fd=epoll->Epoll_wait(epollWaiTime);
+        for(auto& event:ready_fd){
+            if(event.data.fd==listenfd){
+                add_client();
+            }  
+            else if(event.events&EPOLLIN){//Read available from client
+                read_client(event.data.fd);
+                //pool.add_task(event_map[fd]);
+            }
 
+        }
     }
     
 }
@@ -46,7 +44,7 @@ void Server::add_client(){
     int cfd=0;//cfd will be zero when listenfd is set to non-block and ET
     while ((cfd=listenSocket.accept_client())>=0){
         //by default the flag is set to EPOLLIN|EPOLLET
-        cout<<"connection accepted!, Client info: \n"<<listenSocket.get_client()<<endl;
+       // cout<<"connection accepted!, Client info: \n"<<listenSocket.get_client()<<endl;
         epoll->add_fd(cfd);
     }
 }
@@ -55,20 +53,38 @@ void Server::add_client(){
 void Server::read_client(int fd){// read data from client store the http connection.
     
     char buf[1024]={0};
-    int len=0,read_bytes=0;
+    int len=sizeof(buf),read_bytes=0;
     string data;
     //continuous read from the non-blocking fd
-    while((read_bytes=read(fd, buf, sizeof(buf)))>=0){
-        len+=read_bytes;
+
+    while((read_bytes=read(fd, buf, len))>0){
         data.append(buf,read_bytes);
+        if(read_bytes<len) break;
+        
     }
-    if(len){
-        //conn=std::move(data);
-        Http http(std::move(data),fd,epoll);
-        //event_map[fd]=std::move(data);
-        auto fun=compose(Http::handleHttp,http);
-        thread_pool.addTask(fun);
-       // tpool.addTask(Task<decltype(Http::handleHttp),Http>(Http::handleHttp, std::move(http)));
+
+
+    if(read_bytes==0){//socket closed
+        epoll->del_fd(fd);
+        close(fd);
+        return;
     }
+    if(read_bytes==-1){
+        if(errno!=EAGAIN){
+            perror("read");
+            epoll->del_fd(fd);
+            close(fd);
+           
+        }
+        //nothing happens, read it again when new data comes in
+        return ;
+    }
+
     
+
+    Http http(data,fd,epoll);
+
+    auto fun=compose(Http::handleHttp,http);
+    thread_pool.addTask(fun);
+
 }

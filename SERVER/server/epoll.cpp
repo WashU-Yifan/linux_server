@@ -50,5 +50,7 @@ void Epoll::del_fd(int fd){
 vector<epoll_event> Epoll::Epoll_wait(int timeout){
     epoll_event event_store[SIZE];
     int nfd=epoll_wait(epfd,event_store,SIZE,timeout);
+    if(nfd==-1) 
+        perror("epoll_wait");
     return vector<epoll_event>(event_store,event_store+nfd);
 }

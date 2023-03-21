@@ -33,29 +33,29 @@ void Tpool<T>:: runHead(){
     while(1){
         sem.wait();//sem -1
         que_mut.lock();
-
+        if(Tque.empty()) continue;
         T task = Tque.front(); // Get the task from the front of the queue
         Tque.pop();
         que_mut.unlock(); 
 
-
-        Http& http=task();
+        Http http=task();
+    
         if(http.del()){
+ 
             //If wirte back is not perfromed and is not due to no-nonblocking issues
             close(http.getfd());
+        
             auto epoll_shared_ptr = http.epoll.lock();
             if (epoll_shared_ptr) {
                 epoll_shared_ptr->del_fd(http.getfd());
             } else {
-                std::cout<<"epoll pointer not valid"<<std::endl;
                 throw new std::exception();
             }
-            
-
         }
         else{
-            if(http.again())
+            if(http.again()){
                 addTask(compose(Http::handleHttp,http));
+            }
         }
     }
 }
