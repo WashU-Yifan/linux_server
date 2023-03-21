@@ -2,7 +2,8 @@
 #include "tpool.h"
 #include <iostream>
 //template class Tpool<Task<void(int, int), int, int>>;
-
+using std::cout;
+using std::endl;
 
 template <typename T>
 Tpool<T>:: Tpool(unsigned short size,int max_request):
@@ -25,6 +26,7 @@ bool Tpool<T>::addTask(const T& task){
     Tque.push(task);
     que_mut.unlock();
     sem.post();//sem +1
+    cout<<"task added to que"<<endl;
     return true;
 }
 
@@ -37,20 +39,18 @@ void Tpool<T>:: runHead(){
         T task = Tque.front(); // Get the task from the front of the queue
         Tque.pop();
         que_mut.unlock(); 
-
+        cout<<"begin write back"<<endl;
         Http http=task();
-    
+        cout<<"finish write back"<<endl;
         if(http.del()){
  
             //If wirte back is not perfromed and is not due to no-nonblocking issues
-            close(http.getfd());
-        
             auto epoll_shared_ptr = http.epoll.lock();
-            if (epoll_shared_ptr) {
-                epoll_shared_ptr->del_fd(http.getfd());
-            } else {
-                throw new std::exception();
-            }
+          
+            if(epoll_shared_ptr->del_fd(http.getfd())!=-1)
+                close(http.getfd());
+            else
+                perror("EPOLL del: ");
         }
         else{
             if(http.again()){

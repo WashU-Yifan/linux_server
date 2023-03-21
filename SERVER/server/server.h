@@ -13,7 +13,7 @@ class Server{
 
     public:
         Server( int portnum,int time,const char * inet="0.0.0.0",
-          int max_request_size=1024,int thread_num=4);
+          int max_request_size=4096,int thread_num=4);
         void Run();
 
 

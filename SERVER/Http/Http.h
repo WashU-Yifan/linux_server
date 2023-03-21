@@ -11,7 +11,10 @@ class Http{
         Http(std::string , int,const std::shared_ptr<Epoll>& );
         Http(const Http&);
       //  Http(const Http&  );
+        void response();
         int write_back();
+
+
         static Http handleHttp(const Http&);
 
         inline int getfd(){return fd;}
@@ -22,9 +25,12 @@ class Http{
         std::weak_ptr<Epoll> epoll;
     private:
         std::string data;
+        std::string res;
         int fd;
         bool _again;
         bool _del;
         
         
 };
+
+

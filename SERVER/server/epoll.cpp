@@ -42,9 +42,9 @@ void Epoll::mod_fd(int fd, unsigned int op){
         perror("EPOLL mod: ");
 
 }
-void Epoll::del_fd(int fd){
-    if(epoll_ctl(epfd,EPOLL_CTL_DEL,fd,NULL)==-1)
-        perror("EPOLL del: ");
+int Epoll::del_fd(int fd){
+    return epoll_ctl(epfd,EPOLL_CTL_DEL,fd,NULL);
+
 }
 
 vector<epoll_event> Epoll::Epoll_wait(int timeout){

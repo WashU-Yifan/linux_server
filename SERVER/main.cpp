@@ -11,7 +11,7 @@ static int portnum=0;
 static int wait_time=0;
 //these are default numbers
 static char * inet="0.0.0.0";
-static int max_request_size=1024;
+static int max_request_size=4096;
 static int thread_num=4;
 
 
