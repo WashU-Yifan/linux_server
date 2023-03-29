@@ -36,11 +36,13 @@ void Server::Run(){
                 if(epoll->del_fd(event.data.fd)!=-1)
                     close(event.data.fd);
                 else
-                    perror("EPOLL del: ");
+                    perror("EPOLL del in server: ");
             }
             else if(event.events&EPOLLIN){//Read available from client
-                read_client(event.data.fd);
                 //pool.add_task(event_map[fd]);
+                int fd=event.data.fd;
+                auto http=std::make_shared<Http>("",fd,epoll);
+                thread_pool.addTask(compose(Http::readHttp,http));
             }
 
         }
@@ -61,43 +63,5 @@ void Server::add_client(){
 }
 
 
-void Server::read_client(int fd){// read data from client store the http connection.
-    
-    char buf[1024]={0};
-    int len=sizeof(buf),read_bytes=0;
-    string data;
-    //continuous read from the non-blocking fd
-    //cout<<"begin read"<<endl;
-    while((read_bytes=read(fd, buf, len))>0){
-        data.append(buf,read_bytes);
-        if(read_bytes<len) break;
-        
-    }
 
-
-    if(read_bytes==0){//socket closed
-        epoll->del_fd(fd);
-        close(fd);
-       // cout<<"socket close"<<endl;
-        return;
-    }
-    if(read_bytes==-1){
-        if(errno!=EAGAIN){
-            perror("read");
-            epoll->del_fd(fd);
-            close(fd);
-           
-        }
-        //nothing happens, read it again when new data comes in
-       // cout<<"socket error"<<endl;
-        return ;
-    }
-
-   // cout<<"read complete"<<endl;
-
-    Http http(data,fd,epoll);
-
-    auto fun=compose(Http::handleHttp,http);
-    thread_pool.addTask(fun);
-
-}
+ 

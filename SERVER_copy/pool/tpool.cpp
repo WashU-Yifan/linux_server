@@ -40,20 +40,24 @@ void Tpool<T>:: runHead(){
         Tque.pop();
         que_mut.unlock(); 
         //cout<<"begin write back"<<endl;
-        Http http=task();
+        auto http=task();
         //cout<<"finish write back"<<endl;
-        if(http.del()){
+        if(http->del()){
  
             //If wirte back is not perfromed and is not due to no-nonblocking issues
-            auto epoll_shared_ptr = http.epoll.lock();
-          
-            if(epoll_shared_ptr->del_fd(http.getfd())!=-1)
-                close(http.getfd()); 
+            auto epoll_shared_ptr = http->epoll.lock();
+            if(epoll_shared_ptr->del_fd(http->getfd())!=-1)
+                close(http->getfd());
             else
-                perror("EPOLL del: ");
+                perror("EPOLL del in thread poll: ");
         }
         else{
-            if(http.again()){
+            /*
+            if(http->again()){
+                addTask(compose(Http::handleHttp,http));
+            }*/
+            if(http->read_down()){
+                
                 addTask(compose(Http::handleHttp,http));
             }
         }

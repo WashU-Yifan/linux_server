@@ -10,43 +10,62 @@ using std::cout;
 using std::stringstream;
 
 Http::Http(string  s,int _fd,const shared_ptr<Epoll>& ep):epoll(ep),
-data(s),fd(_fd),_again(true),_del(false){
+data(s),fd(_fd),_again(true),_del(false),_read_done(false){
    
 }
 
 Http::Http(const Http& _http):epoll(_http.epoll),data(_http.data)
-,fd(_http.fd),_again(true),_del(false){}
+,fd(_http.fd),_again(true),_del(false),_read_done(false){}
 
-Http Http::handleHttp( const Http & _http){ 
+std::shared_ptr<Http>  Http::handleHttp( const std::shared_ptr<Http> & http){ 
 
-    Http http(_http);
+    http->_read_done=false;
     //cout<<http.data<<endl;
-    
-    http.response();
-    //cout<<http.res<<endl;
-    int writed=http.write_back();
+    http->response();
+
+    int writed=http->write_back();
     //cout<<writed<<endl;
     switch (writed){
         case -1:
         //if the resource is not available
-            http._again=false;
-            http._del=true;
+            http->_again=false;
+            http->_del=true;
             return http;
         case 1://success
-            http._again=false;
+            http->_again=false;
             //http._del=false;
-            http._del=true;
+            http->_del=true;
             return http;
         case EAGAIN:
-            http._again=true;
+            http->_again=true;
             //http._del=false;
-            http._del=true;
+            http->_del=true;
             return http;
         default://0
-            http._again=false;
-            http._del=true;
+            http->_again=false;
+            http->_del=true;
             return http;
     }   
+}
+
+std::shared_ptr<Http> Http::readHttp( const std::shared_ptr<Http> & http){ 
+    char buf[1024]={0};
+    int len=sizeof(buf),read_bytes=0;
+
+    //continuous read from the non-blocking fd
+    int fd=http->fd;
+    while((read_bytes=read(fd, buf, len))>0){
+        http->data.append(buf,read_bytes);
+        if(read_bytes<len) break;
+        
+    }
+
+    http->_read_done=true;
+
+    if(read_bytes<0&&errno!=EAGAIN){
+        http->_del=true;
+    }
+    return http;
 }
 
 
