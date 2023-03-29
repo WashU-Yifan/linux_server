@@ -16,12 +16,9 @@ SERVER:
     Max QPS: 55174
 SERVER_Copy:
     Now the main thread is only responsible for accepting client connections. All 
-    client data will be read, processed, and sent back in working threads. Have changed the Http object to shared_ptr<Http> in composing the functor to reduce memory usage. However, as now the program's through put is heavily relied on the
-    synchronization of threads: 
+    client data will be read, processed, and sent back in working threads. Have changed the Http object to shared_ptr<Http> in composing the functor to reduce memory usage. However, as now the program's through put is heavily relied on the synchronization of threads: 
         main threads push read task onto the que, 
-        
         working threads popped the read tasks, finished the request,and push the write request onto the que.
-        
         working threads popped the write tasks from the que and send it back to client.
     The through put is reduced by a significant amount. 
 
